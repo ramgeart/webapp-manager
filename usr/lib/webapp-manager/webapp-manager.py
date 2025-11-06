@@ -21,7 +21,7 @@ gi.require_version('XApp', '1.0')
 from gi.repository import Gtk, Gdk, Gio, XApp, GdkPixbuf
 
 #   3. Local application/library specific imports.
-from common import _async, idle, WebAppManager, download_favicon, ICONS_DIR, BROWSER_TYPE_FIREFOX, BROWSER_TYPE_FIREFOX_FLATPAK, BROWSER_TYPE_ZEN_FLATPAK, BROWSER_TYPE_FIREFOX_SNAP
+from common import _async, idle, WebAppManager, download_favicon, ICONS_DIR, PROFILES_DIR, BROWSER_TYPE_FIREFOX, BROWSER_TYPE_FIREFOX_FLATPAK, BROWSER_TYPE_ZEN_FLATPAK, BROWSER_TYPE_FIREFOX_SNAP
 
 setproctitle.setproctitle("webapp-manager")
 
@@ -219,7 +219,6 @@ class WebAppManagerWindow:
         self.browser_combo.connect("changed", self.on_browser_changed)
 
         # Set default profile location to the standard ICE profiles directory
-        from common import PROFILES_DIR
         self.profile_path_chooser.set_current_folder(os.path.dirname(PROFILES_DIR))
 
         self.load_webapps()
@@ -377,7 +376,7 @@ class WebAppManagerWindow:
             self.gpu_switch.set_active(self.selected_webapp.gpu_enabled)
             
             # Set profile path if it exists
-            if hasattr(self.selected_webapp, 'custom_profile_path') and self.selected_webapp.custom_profile_path:
+            if self.selected_webapp.custom_profile_path:
                 self.profile_path_chooser.set_filename(self.selected_webapp.custom_profile_path)
             else:
                 self.profile_path_chooser.unselect_all()
