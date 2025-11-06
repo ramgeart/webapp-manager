@@ -272,6 +272,21 @@ class WebAppManager:
         shutil.rmtree(os.path.join(FALKON_PROFILES_DIR, webapp.codename), ignore_errors=True)
 
     def create_webapp(self, name, desc, url, icon, category, browser, custom_parameters, isolate_profile=True, navbar=False, privatewindow=False, gpu_enabled=True, custom_profile_path=None):
+        # Validate custom profile path if provided
+        if custom_profile_path:
+            if not os.path.exists(custom_profile_path):
+                # Try to create it if it doesn't exist
+                try:
+                    os.makedirs(custom_profile_path, exist_ok=True)
+                except Exception as e:
+                    print(f"Warning: Could not create custom profile path {custom_profile_path}: {e}")
+                    print("Using default profile location instead")
+                    custom_profile_path = None
+            elif not os.access(custom_profile_path, os.W_OK):
+                print(f"Warning: Custom profile path {custom_profile_path} is not writable")
+                print("Using default profile location instead")
+                custom_profile_path = None
+
         # Generate a 4 digit random code (to prevent name collisions, so we can define multiple launchers with the same name)
         random_code =  ''.join(choice(string.digits) for _ in range(4))
         codename = "".join(filter(str.isalpha, name)) + random_code
@@ -458,6 +473,21 @@ class WebAppManager:
         return exec_string
 
     def edit_webapp(self, path, name, desc, browser, url, icon, category, custom_parameters, codename, isolate_profile, navbar, privatewindow, gpu_enabled=True, custom_profile_path=None):
+        # Validate custom profile path if provided
+        if custom_profile_path:
+            if not os.path.exists(custom_profile_path):
+                # Try to create it if it doesn't exist
+                try:
+                    os.makedirs(custom_profile_path, exist_ok=True)
+                except Exception as e:
+                    print(f"Warning: Could not create custom profile path {custom_profile_path}: {e}")
+                    print("Using default profile location instead")
+                    custom_profile_path = None
+            elif not os.access(custom_profile_path, os.W_OK):
+                print(f"Warning: Custom profile path {custom_profile_path} is not writable")
+                print("Using default profile location instead")
+                custom_profile_path = None
+
         if not desc:
             desc = _("Web App")
 

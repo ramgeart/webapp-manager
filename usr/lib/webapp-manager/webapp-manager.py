@@ -219,7 +219,7 @@ class WebAppManagerWindow:
         self.browser_combo.connect("changed", self.on_browser_changed)
 
         # Set default profile location to the standard ICE profiles directory
-        self.profile_path_chooser.set_current_folder(os.path.dirname(PROFILES_DIR))
+        self.profile_path_chooser.set_current_folder(PROFILES_DIR)
 
         self.load_webapps()
 
@@ -374,7 +374,7 @@ class WebAppManagerWindow:
             self.isolated_switch.set_active(self.selected_webapp.isolate_profile)
             self.privatewindow_switch.set_active(self.selected_webapp.privatewindow)
             self.gpu_switch.set_active(self.selected_webapp.gpu_enabled)
-            
+
             # Set profile path if it exists
             if self.selected_webapp.custom_profile_path:
                 self.profile_path_chooser.set_filename(self.selected_webapp.custom_profile_path)
