@@ -324,7 +324,10 @@ class WebAppManagerWindow:
         navbar = self.navbar_switch.get_active()
         privatewindow = self.privatewindow_switch.get_active()
         gpu_enabled = self.gpu_switch.get_active()
-        custom_profile_path = self.profile_path_chooser.get_filename() if isolate_profile else None
+        # Only get custom profile path if isolated profile is enabled and chooser is visible
+        custom_profile_path = None
+        if isolate_profile and self.profile_path_chooser.get_visible():
+            custom_profile_path = self.profile_path_chooser.get_filename()
         icon = self.icon_chooser.get_icon()
         custom_parameters = self.customparameters_entry.get_text()
         if "/tmp" in icon:
