@@ -91,6 +91,8 @@ class WebAppLauncher:
         self.isolate_profile = False
         self.navbar = False
         self.privatewindow = False
+        self.gpu_enabled = True
+        self.custom_profile_path = None
 
         is_webapp = False
         with open(path) as desktop_file:
@@ -146,6 +148,14 @@ class WebAppLauncher:
 
                 if "X-WebApp-PrivateWindow" in line:
                     self.privatewindow = line.replace("X-WebApp-PrivateWindow=", "").lower() == "true"
+                    continue
+
+                if "X-WebApp-GPUEnabled" in line:
+                    self.gpu_enabled = line.replace("X-WebApp-GPUEnabled=", "").lower() == "true"
+                    continue
+
+                if "X-WebApp-ProfilePath" in line:
+                    self.custom_profile_path = line.replace("X-WebApp-ProfilePath=", "")
                     continue
 
         if is_webapp and self.name is not None and self.icon is not None:
@@ -261,7 +271,7 @@ class WebAppManager:
             os.remove(falkon_orig_prof_dir)
         shutil.rmtree(os.path.join(FALKON_PROFILES_DIR, webapp.codename), ignore_errors=True)
 
-    def create_webapp(self, name, desc, url, icon, category, browser, custom_parameters, isolate_profile=True, navbar=False, privatewindow=False):
+    def create_webapp(self, name, desc, url, icon, category, browser, custom_parameters, isolate_profile=True, navbar=False, privatewindow=False, gpu_enabled=True, custom_profile_path=None):
         # Generate a 4 digit random code (to prevent name collisions, so we can define multiple launchers with the same name)
         random_code =  ''.join(choice(string.digits) for _ in range(4))
         codename = "".join(filter(str.isalpha, name)) + random_code
@@ -277,7 +287,7 @@ class WebAppManager:
             desktop_file.write("Comment=%s\n" % desc)
 
             exec_string = self.get_exec_string(browser, codename, custom_parameters, icon, isolate_profile, navbar,
-                                               privatewindow, url)
+                                               privatewindow, url, gpu_enabled, custom_profile_path)
 
             desktop_file.write("Exec=%s\n" % exec_string)
             desktop_file.write("Terminal=false\n")
@@ -294,6 +304,9 @@ class WebAppManager:
             desktop_file.write("X-WebApp-Navbar=%s\n" % bool_to_string(navbar))
             desktop_file.write("X-WebApp-PrivateWindow=%s\n" % bool_to_string(privatewindow))
             desktop_file.write("X-WebApp-Isolated=%s\n" % bool_to_string(isolate_profile))
+            desktop_file.write("X-WebApp-GPUEnabled=%s\n" % bool_to_string(gpu_enabled))
+            if custom_profile_path:
+                desktop_file.write("X-WebApp-ProfilePath=%s\n" % custom_profile_path)
 
             if browser.browser_type == BROWSER_TYPE_EPIPHANY:
                 # Move the desktop file and create a symlink
@@ -318,7 +331,7 @@ class WebAppManager:
                 os.symlink(falkon_profile_path, falkon_orig_prof_dir)
 
 
-    def get_exec_string(self, browser, codename, custom_parameters, icon, isolate_profile, navbar, privatewindow, url):
+    def get_exec_string(self, browser, codename, custom_parameters, icon, isolate_profile, navbar, privatewindow, url, gpu_enabled=True, custom_profile_path=None):
         if browser.browser_type in [BROWSER_TYPE_FIREFOX, BROWSER_TYPE_FIREFOX_FLATPAK, BROWSER_TYPE_FIREFOX_SNAP, BROWSER_TYPE_ZEN_FLATPAK]:
             # Firefox based
             if browser.browser_type == BROWSER_TYPE_FIREFOX:
@@ -410,7 +423,11 @@ class WebAppManager:
         else:
             # Chromium based
             if isolate_profile:
-                profile_path = os.path.join(PROFILES_DIR, codename)
+                # Use custom profile path if provided, otherwise use default
+                if custom_profile_path:
+                    profile_path = os.path.join(custom_profile_path, codename)
+                else:
+                    profile_path = os.path.join(PROFILES_DIR, codename)
                 exec_string = (browser.exec_path +
                                " --app=" + "\"" + url + "\"" +
                                " --class=WebApp-" + codename +
@@ -421,6 +438,9 @@ class WebAppManager:
                                " --app=" + "\"" + url + "\"" +
                                " --class=WebApp-" + codename +
                                " --name=WebApp-" + codename)
+
+            if not gpu_enabled:
+                exec_string += " --disable-gpu"
 
             if privatewindow:
                 if browser.name == "Microsoft Edge":
@@ -437,7 +457,7 @@ class WebAppManager:
 
         return exec_string
 
-    def edit_webapp(self, path, name, desc, browser, url, icon, category, custom_parameters, codename, isolate_profile, navbar, privatewindow):
+    def edit_webapp(self, path, name, desc, browser, url, icon, category, custom_parameters, codename, isolate_profile, navbar, privatewindow, gpu_enabled=True, custom_profile_path=None):
         if not desc:
             desc = _("Web App")
 
@@ -453,7 +473,7 @@ class WebAppManager:
             # This will raise an exception on legacy apps which
             # have no X-WebApp-URL and X-WebApp-Browser
 
-            exec_line = self.get_exec_string(browser, codename, custom_parameters, icon, isolate_profile, navbar, privatewindow, url)
+            exec_line = self.get_exec_string(browser, codename, custom_parameters, icon, isolate_profile, navbar, privatewindow, url, gpu_enabled, custom_profile_path)
 
             config.set("Desktop Entry", "Exec", exec_line)
             config.set("Desktop Entry", "X-WebApp-Browser", browser.name)
@@ -462,6 +482,13 @@ class WebAppManager:
             config.set("Desktop Entry", "X-WebApp-Isolated", bool_to_string(isolate_profile))
             config.set("Desktop Entry", "X-WebApp-Navbar", bool_to_string(navbar))
             config.set("Desktop Entry", "X-WebApp-PrivateWindow", bool_to_string(privatewindow))
+            config.set("Desktop Entry", "X-WebApp-GPUEnabled", bool_to_string(gpu_enabled))
+            if custom_profile_path:
+                config.set("Desktop Entry", "X-WebApp-ProfilePath", custom_profile_path)
+            else:
+                # Remove the profile path if it was previously set but now is None
+                if config.has_option("Desktop Entry", "X-WebApp-ProfilePath"):
+                    config.remove_option("Desktop Entry", "X-WebApp-ProfilePath")
 
         except:
             print("This WebApp was created with an old version of WebApp Manager. Its URL cannot be edited.")

@@ -287,7 +287,7 @@
                   </object>
                   <packing>
                     <property name="left-attach">0</property>
-                    <property name="top-attach">10</property>
+                    <property name="top-attach">12</property>
                     <property name="width">3</property>
                   </packing>
                 </child>
@@ -413,6 +413,33 @@
                   </packing>
                 </child>
                 <child>
+                  <object class="GtkLabel" id="profile_path_label">
+                    <property name="visible">False</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">end</property>
+                    <property name="label" translatable="yes">Profile location:</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">8</property>
+                    <property name="width">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkFileChooserButton" id="profile_path_chooser">
+                    <property name="visible">False</property>
+                    <property name="can-focus">False</property>
+                    <property name="action">select-folder</property>
+                    <property name="title" translatable="yes">Select Profile Location</property>
+                    <property name="width-chars">40</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">8</property>
+                    <property name="width">1</property>
+                  </packing>
+                </child>
+                <child>
                   <object class="GtkSwitch" id="navbar_switch">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
@@ -420,7 +447,7 @@
                   </object>
                   <packing>
                     <property name="left-attach">1</property>
-                    <property name="top-attach">8</property>
+                    <property name="top-attach">9</property>
                   </packing>
                 </child>
                 <child>
@@ -434,7 +461,34 @@
                   </object>
                   <packing>
                     <property name="left-attach">0</property>
-                    <property name="top-attach">8</property>
+                    <property name="top-attach">9</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSwitch" id="gpu_switch">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="halign">center</property>
+                    <property name="active">True</property>
+                    <property name="tooltip-text" translatable="yes">Enable GPU acceleration for rendering (disable if experiencing graphics issues)</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">10</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="gpu_label">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">end</property>
+                    <property name="label" translatable="yes">GPU Enabled:</property>
+                    <property name="wrap">True</property>
+                    <property name="max-width-chars">20</property>
+                  </object>
+                  <packing>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">10</property>
                   </packing>
                 </child>
                 <child>
@@ -445,7 +499,7 @@
                   </object>
                   <packing>
                     <property name="left-attach">1</property>
-                    <property name="top-attach">9</property>
+                    <property name="top-attach">11</property>
                   </packing>
                 </child>
                 <child>
@@ -459,7 +513,7 @@
                   </object>
                   <packing>
                     <property name="left-attach">0</property>
-                    <property name="top-attach">9</property>
+                    <property name="top-attach">11</property>
                   </packing>
                 </child>
                 <child>

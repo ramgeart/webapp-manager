@@ -97,6 +97,10 @@ class WebAppManagerWindow:
         self.isolated_label = self.builder.get_object("isolated_label")
         self.navbar_switch = self.builder.get_object("navbar_switch")
         self.navbar_label = self.builder.get_object("navbar_label")
+        self.gpu_switch = self.builder.get_object("gpu_switch")
+        self.gpu_label = self.builder.get_object("gpu_label")
+        self.profile_path_chooser = self.builder.get_object("profile_path_chooser")
+        self.profile_path_label = self.builder.get_object("profile_path_label")
         self.privatewindow_switch = self.builder.get_object("privatewindow_switch")
         self.privatewindow_label = self.builder.get_object("privatewindow_label")
         self.spinner = self.builder.get_object("spinner")
@@ -118,6 +122,7 @@ class WebAppManagerWindow:
         self.favicon_button.connect("clicked", self.on_favicon_button)
         self.name_entry.connect("changed", self.on_name_entry)
         self.url_entry.connect("changed", self.on_url_entry)
+        self.isolated_switch.connect("notify::active", self.on_isolated_switch_changed)
         self.window.connect("key-press-event", self.on_key_press_event)
 
         # Menubar
@@ -212,6 +217,10 @@ class WebAppManagerWindow:
             self.browser_label.hide()
             self.browser_combo.hide()
         self.browser_combo.connect("changed", self.on_browser_changed)
+
+        # Set default profile location to the standard ICE profiles directory
+        from common import PROFILES_DIR
+        self.profile_path_chooser.set_current_folder(os.path.dirname(PROFILES_DIR))
 
         self.load_webapps()
 
@@ -315,6 +324,8 @@ class WebAppManagerWindow:
         isolate_profile = self.isolated_switch.get_active()
         navbar = self.navbar_switch.get_active()
         privatewindow = self.privatewindow_switch.get_active()
+        gpu_enabled = self.gpu_switch.get_active()
+        custom_profile_path = self.profile_path_chooser.get_filename() if isolate_profile else None
         icon = self.icon_chooser.get_icon()
         custom_parameters = self.customparameters_entry.get_text()
         if "/tmp" in icon:
@@ -324,11 +335,11 @@ class WebAppManagerWindow:
             shutil.copyfile(icon, new_path)
             icon = new_path
         if self.edit_mode:
-            self.manager.edit_webapp(self.selected_webapp.path, name, desc, browser, url, icon, category, custom_parameters, self.selected_webapp.codename, isolate_profile, navbar, privatewindow)
+            self.manager.edit_webapp(self.selected_webapp.path, name, desc, browser, url, icon, category, custom_parameters, self.selected_webapp.codename, isolate_profile, navbar, privatewindow, gpu_enabled, custom_profile_path)
             self.load_webapps()
         else:
             self.manager.create_webapp(name, desc, url, icon, category, browser, custom_parameters, isolate_profile, navbar,
-                                       privatewindow)
+                                       privatewindow, gpu_enabled, custom_profile_path)
             self.load_webapps()
 
     def on_add_button(self, widget):
@@ -342,6 +353,8 @@ class WebAppManagerWindow:
         self.isolated_switch.set_active(True)
         self.navbar_switch.set_active(False)
         self.privatewindow_switch.set_active(False)
+        self.gpu_switch.set_active(True)
+        self.profile_path_chooser.unselect_all()
         for widget in self.add_specific_widgets:
             widget.show()
         self.show_hide_browser_widgets()
@@ -361,6 +374,13 @@ class WebAppManagerWindow:
             self.navbar_switch.set_active(self.selected_webapp.navbar)
             self.isolated_switch.set_active(self.selected_webapp.isolate_profile)
             self.privatewindow_switch.set_active(self.selected_webapp.privatewindow)
+            self.gpu_switch.set_active(self.selected_webapp.gpu_enabled)
+            
+            # Set profile path if it exists
+            if hasattr(self.selected_webapp, 'custom_profile_path') and self.selected_webapp.custom_profile_path:
+                self.profile_path_chooser.set_filename(self.selected_webapp.custom_profile_path)
+            else:
+                self.profile_path_chooser.unselect_all()
 
             web_browsers = map(lambda i: i[0], self.browser_combo.get_model())
             selected_browser_index = [idx for idx, x in enumerate(web_browsers) if x.name == self.selected_webapp.web_browser][0]
@@ -450,20 +470,42 @@ class WebAppManagerWindow:
     def on_browser_changed(self, widget):
         self.show_hide_browser_widgets()
 
+    def on_isolated_switch_changed(self, switch, gparam):
+        is_isolated = self.isolated_switch.get_active()
+        if is_isolated:
+            self.profile_path_label.show()
+            self.profile_path_chooser.show()
+        else:
+            self.profile_path_label.hide()
+            self.profile_path_chooser.hide()
+
     def show_hide_browser_widgets(self):
         browser = self.browser_combo.get_model()[self.browser_combo.get_active()][BROWSER_OBJ]
         if browser.browser_type in [BROWSER_TYPE_FIREFOX, BROWSER_TYPE_FIREFOX_FLATPAK, BROWSER_TYPE_FIREFOX_SNAP, BROWSER_TYPE_ZEN_FLATPAK]:
             self.isolated_label.hide()
             self.isolated_switch.hide()
+            self.profile_path_label.hide()
+            self.profile_path_chooser.hide()
             self.navbar_label.show()
             self.navbar_switch.show()
+            self.gpu_label.hide()
+            self.gpu_switch.hide()
             self.privatewindow_label.show()
             self.privatewindow_switch.show()
         else:
             self.isolated_label.show()
             self.isolated_switch.show()
+            # Show profile path chooser if isolated is active
+            if self.isolated_switch.get_active():
+                self.profile_path_label.show()
+                self.profile_path_chooser.show()
+            else:
+                self.profile_path_label.hide()
+                self.profile_path_chooser.hide()
             self.navbar_label.hide()
             self.navbar_switch.hide()
+            self.gpu_label.show()
+            self.gpu_switch.show()
             self.privatewindow_label.show()
             self.privatewindow_switch.show()
 
