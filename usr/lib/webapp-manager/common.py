@@ -155,7 +155,7 @@ class WebAppLauncher:
                     continue
 
                 if "X-WebApp-ProfilePath" in line:
-                    self.custom_profile_path = line.replace("X-WebApp-ProfilePath=", "")
+                    self.custom_profile_path = line.replace("X-WebApp-ProfilePath=", "").strip()
                     continue
 
         if is_webapp and self.name is not None and self.icon is not None:
