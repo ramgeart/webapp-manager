@@ -356,7 +356,7 @@ class WebAppManagerWindow:
         self.navbar_switch.set_active(False)
         self.privatewindow_switch.set_active(False)
         self.gpu_switch.set_active(True)
-        self.profile_path_chooser.unselect_all()
+        self.profile_path_chooser.set_current_folder(PROFILES_DIR)
         for widget in self.add_specific_widgets:
             widget.show()
         self.show_hide_browser_widgets()
